@@ -37,14 +37,14 @@ public class BlockController : MonoBehaviour
             if (state == State.HitRight)
                 state = State.Free;
             if (state != State.HitLeft)
-                transform.position = transform.position + new Vector3(-2, 0, 0);
+                transform.position = transform.position + new Vector3(-1, 0, 0);
         }
         else if (Input.GetKeyDown(KeyCode.D))
         {
             if (state == State.HitLeft)
                 state = State.Free;
             if (state != State.HitRight)
-                transform.position = transform.position + new Vector3(2, 0, 0);
+                transform.position = transform.position + new Vector3(1, 0, 0);
         }
         else if (Input.GetKeyDown(KeyCode.W))
         {
@@ -55,7 +55,9 @@ public class BlockController : MonoBehaviour
     private void Fall()
     {
         if (state != State.HitBottom)
-            transform.position = transform.position + new Vector3(0, -0.1f, 0);
+        {
+            transform.position = transform.position + new Vector3(0, -0.05f, 0);
+        }
 
     }
 
