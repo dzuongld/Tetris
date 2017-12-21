@@ -56,6 +56,7 @@ public class BlockController : MonoBehaviour
     {
         if (state != State.HitBottom)
         {
+            print("falling");
             transform.position = transform.position + new Vector3(0, -0.05f, 0);
         }
 
@@ -65,11 +66,13 @@ public class BlockController : MonoBehaviour
     {
         if (collision.gameObject.tag == "Bottom")
         {
+            print("bottom");
             state = State.HitBottom;
             return;
         }
         if (collision.gameObject.tag == "Left")
         {
+            print("left");
             state = State.HitLeft;
         }
         if (collision.gameObject.tag == "Right")
