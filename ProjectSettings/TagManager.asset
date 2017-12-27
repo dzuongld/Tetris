@@ -8,6 +8,7 @@ TagManager:
   - Top
   - Left
   - Right
+  - BottomBlock
   layers:
   - Default
   - TransparentFX
