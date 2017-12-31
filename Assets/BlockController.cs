@@ -1,16 +1,17 @@
 ﻿using System;
-using System.Linq;
 using UnityEngine;
 
 public class BlockController : MonoBehaviour
 {
-    [SerializeField] float speedFactor = 0.1f;
+    //[SerializeField] float speedFactor = 0.1f;
 
     Rigidbody rb;
-    Vector3 fallDirection = new Vector3(0, -1f, 0);
+    Vector3 fallDirection = new Vector3(0, -1f, 0); //block should fall down vertically 1 unit at a time
     bool isReady = false;
     GameController gameController;
+    AudioSource audioSource;
 
+    //possible states of a block
     enum State
     {
         Free, HitLeft, HitRight, HitBottom
@@ -22,6 +23,8 @@ public class BlockController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         gameController = GameObject.Find("SpawnPoint").GetComponent<GameController>();
+        audioSource = gameController.GetAudioSource();
+
         InvokeRepeating("Fall", 0, 1f);
     }
 
@@ -38,7 +41,7 @@ public class BlockController : MonoBehaviour
             return;
         }
 
-        if (Input.GetKeyDown(KeyCode.A))
+        if (Input.GetKeyDown(KeyCode.A)) //move left
         {
             if (state != State.HitLeft && OkToMove("left"))
             {
@@ -47,7 +50,7 @@ public class BlockController : MonoBehaviour
                     state = State.Free;
             }
         }
-        else if (Input.GetKeyDown(KeyCode.D))
+        else if (Input.GetKeyDown(KeyCode.D)) //move right
         {
             if (state != State.HitRight && OkToMove("right"))
             {
@@ -56,39 +59,37 @@ public class BlockController : MonoBehaviour
                     state = State.Free;
             }
         }
-        else if (Input.GetKeyDown(KeyCode.W) && OkToMove("rotate"))
+        else if (this.tag != "Square" && Input.GetKeyDown(KeyCode.W) && OkToMove("rotate")) //rotate clockwise, except the squared block
         {
+            if (!audioSource.isPlaying)
+                gameController.PlayRotateSound();
+
             transform.Rotate(Vector3.back, 90f);
         }
-        else if (Input.GetKey(KeyCode.S))
+        else if (Input.GetKey(KeyCode.S)) //speed up
         {
             CancelInvoke("Fall");
-            InvokeRepeating("Fall", 0, 0.8f);
+            //InvokeRepeating("Fall", 0, 0.5f);
+            Fall();
         }
         else if (Input.GetKeyUp(KeyCode.S))
         {
-            CancelInvoke("Fall");
+            //CancelInvoke("Fall");
             InvokeRepeating("Fall", 0, 1f);
         }
+        else
+        {
+            audioSource.Stop();
+        }
 
-        int[] positions = ProcessPosition();
-        print(string.Join(" ", positions.Select(x => x.ToString()).ToArray()));
 
     }
 
     void OnCollisionEnter(Collision collision)
     {
 
-        //foreach (ContactPoint contact in collision.contacts)
-        //{
-        //    print("Contact " + contact.point.x + " " + contact.point.y + " " + contact.point.z);
-        //}
-
-        //print(HitSide(collision));
-
         if (collision.gameObject.tag == "Bottom" || (collision.gameObject.tag == "BottomBlock" && !HitSide(collision)))
         {
-            //print(this.tag);
             HandleDrop();
             return;
         }
@@ -111,6 +112,7 @@ public class BlockController : MonoBehaviour
         }
     }
 
+    //dropped and ready for the next block to spawn
     public bool IsReady()
     {
         if (isReady)
@@ -127,6 +129,7 @@ public class BlockController : MonoBehaviour
             transform.position = transform.position + fallDirection;
     }
 
+    //when block has hit the base or other dropped blocks
     private void HandleDrop()
     {
         if (this.tag == "BottomBlock")
@@ -154,7 +157,15 @@ public class BlockController : MonoBehaviour
             {
                 //pick one point
                 ContactPoint p1 = collision.contacts[i];
-                //print("Point1 " + p1.point.x + " " + p1.point.y + " " + p1.point.z);
+
+                float y1 = p1.thisCollider.transform.gameObject.transform.position.y;
+                float y2 = p1.otherCollider.transform.gameObject.transform.position.y;
+
+                //hit underneath of a dropped block
+                if (y2 - y1 > 0.5)
+                    return true;
+
+
                 for (int j = 0; j < 4; j++)
                 {
                     if (j != i)
@@ -165,15 +176,10 @@ public class BlockController : MonoBehaviour
                         if (Mathf.Abs(p1.point.y - p2.point.y) < 0.5 &&
                             Mathf.Abs(p1.point.z - p2.point.z) < 0.5)
                         {
-                            //print("Point2 " + p2.point.x + " " + p2.point.y + " " + p2.point.z);
                             //ideally should work with < 1 
                             if (Mathf.Abs(p1.point.x - p2.point.x) < 0.5)
-                            {
-                                //print(p1.point.z - p2.point.z);
-                                //print("Point1 H " + p1.point.x + " " + p1.point.y + " " + p1.point.z);
-                                //print("Point2 H " + p2.point.x + " " + p2.point.y + " " + p2.point.z);
                                 return true;
-                            }
+
                         }
 
                         //vertical collision
@@ -181,11 +187,8 @@ public class BlockController : MonoBehaviour
                             Mathf.Abs(p1.point.z - p2.point.z) < 0.5)
                         {
                             if (Mathf.Abs(p1.point.y - p2.point.y) > 0.5)
-                            {
-                                //print("Point2 V " + p1.point.x + " " + p1.point.y + " " + p1.point.z);
-                                //print("Point2 V " + p2.point.x + " " + p2.point.y + " " + p2.point.z);
                                 return true;
-                            }
+
                         }
                     }
                 }
@@ -195,6 +198,7 @@ public class BlockController : MonoBehaviour
         return false;
     }
 
+    //round a float to the nearest 0.5
     private float Round(float num)
     {
         float res = (float)Math.Round(num * 2, MidpointRounding.AwayFromZero) / 2;
@@ -202,6 +206,7 @@ public class BlockController : MonoBehaviour
         return res;
     }
 
+    //adjust coordinates due to imprecision after dropping
     private void FixPosition()
     {
         float x = Round(transform.position.x);
@@ -209,6 +214,7 @@ public class BlockController : MonoBehaviour
         transform.position = new Vector3(x, y, 0);
     }
 
+    //check if ok to perform specific movements
     private bool OkToMove(string side)
     {
         int[] positions = ProcessPosition();
@@ -224,6 +230,7 @@ public class BlockController : MonoBehaviour
             case "right":
                 return rightSpaces > 0;
             case "rotate":
+                //enough space, do regular rotation
                 if ((rightSpaces >= distanceToTop) && (leftSpaces >= distanceToBottom))
                 {
                     if (state == State.HitRight && distanceToTop <= rightSpaces)
@@ -235,6 +242,7 @@ public class BlockController : MonoBehaviour
                     return true;
                 }
 
+                //not enough space on right, check if ok to move left before rotation
                 if (distanceToTop > rightSpaces)
                 {
                     int neededSpaces = distanceToTop - rightSpaces;
@@ -251,6 +259,7 @@ public class BlockController : MonoBehaviour
 
                 }
 
+                //not enough space on left, check if ok to move rigth before rotation
                 if (distanceToBottom > leftSpaces)
                 {
                     int neededSpaces = distanceToBottom - leftSpaces;
@@ -273,72 +282,80 @@ public class BlockController : MonoBehaviour
         }
     }
 
+    //process positions of child blocks
     private int[] ProcessPosition()
     {
         var center = transform.GetChild(0);
         float centerY = center.position.y;
 
-        float bottomY = float.MaxValue, leftX = float.MaxValue;
-        float topY = float.MinValue, rightX = float.MinValue;
-        float leftY = 0, rightY = 0;
+        float bottomY = float.MaxValue;
+        float topY = float.MinValue;
 
-        for (int i = 0; i < transform.childCount; i++)
+        int[,] children = new int[transform.childCount, 2];
+        var childCount = transform.childCount;
+
+        for (int i = 0; i < childCount; i++)
         {
             var child = transform.GetChild(i);
-            //print(i + " " + child.transform.position.x + " " + child.transform.position.y + " " +
-            //child.transform.position.z);
+            float x = child.transform.position.x;
+            float y = child.transform.position.y;
+            int xIndex = (int)(Round(x) + 5.5f);
+            int yIndex = (int)(Round(y) - 0.5f);
+            children[i, 0] = xIndex;
+            children[i, 1] = yIndex;
 
-            if (leftX > child.transform.position.x)
+            if (bottomY > y)
             {
-                leftX = child.transform.position.x;
-                leftY = child.transform.position.y;
+                bottomY = y;
             }
-            if (rightX < child.transform.position.x)
+            if (topY < y)
             {
-                rightX = child.transform.position.x;
-                rightY = child.transform.position.y;
-            }
-            if (bottomY > child.transform.position.y)
-            {
-                bottomY = child.transform.position.y;
-            }
-            if (topY < child.transform.position.y)
-            {
-                topY = child.transform.position.y;
+                topY = y;
             }
         }
+
 
         int[,] map = gameController.GetMap();
         int cols = gameController.GetColCount();
 
-        int x = (int)(Round(leftX) + 5.5f);
-        int y = (int)(Round(leftY) - 0.5f);
-        int index = x - 1;
+        int leftSpaces = Int32.MaxValue; //available spaces on the left of the block
+        int rightSpaces = Int32.MaxValue; //available spaces on the right of the block
 
-        int leftSpaces = 0;
-        while (index >= 0 && map[y, index] != 1)
+        for (int i = 0; i < childCount; i++)
         {
-            leftSpaces++;
-            index--;
+            int x = children[i, 0];
+            int y = children[i, 1];
+
+            int leftCount = 0;
+            int rightCount = 0;
+            for (int j = x + 1; j < cols; j++)
+            {
+                if (map[y, j] == 1)
+                    break;
+
+                rightCount++;
+            }
+            if (rightSpaces > rightCount)
+                rightSpaces = rightCount;
+
+            for (int j = x - 1; j >= 0; j--)
+            {
+                if (map[y, j] == 1)
+                    break;
+
+                leftCount++;
+            }
+            if (leftSpaces > leftCount)
+                leftSpaces = leftCount;
         }
 
-        x = (int)(Round(rightX) + 5.5f);
-        y = (int)(Round(rightY) - 0.5f);
-        index = x + 1;
-
-        int rightSpaces = 0;
-        while (index <= cols - 1 && map[y, index] != 1)
-        {
-            rightSpaces++;
-            index++;
-        }
-
-        int distanceToTop = (int)Round(topY - centerY);
-        int distanceToBottom = (int)Round(centerY - bottomY);
+        int distanceToTop = (int)(Round(topY) - Round(centerY)); //between center block and highest block
+        int distanceToBottom = (int)(Round(centerY) - Round(bottomY)); //between center block and lowest block
 
         return new int[] { leftSpaces, rightSpaces, distanceToTop, distanceToBottom };
     }
 
+    //record positions of child blocks on the map
     public void UpdateMap(int[,] blockMap)
     {
         for (int i = 0; i < transform.childCount; i++)
@@ -347,7 +364,15 @@ public class BlockController : MonoBehaviour
             int column = (int)(Round(child.transform.position.x) + 5.5f);
             int row = (int)(Round(child.transform.position.y) - 0.5f);
 
-            blockMap[row, column] = 1;
+            //prevent the program from crashing
+            try
+            {
+                blockMap[row, column] = 1;
+            }
+            catch (IndexOutOfRangeException e)
+            {
+                print(e.Message);
+            }
         }
     }
 
