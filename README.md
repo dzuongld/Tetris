@@ -22,6 +22,6 @@
 - No support for scoring/leveling up/speed increase
 - No grid layout
 
-## Version 1.0 
+## Version 1.1
 
 - Fixed "dropping" issue
