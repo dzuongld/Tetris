@@ -5,6 +5,7 @@
 - A Tetris clone built using Unity and C#
 - Use A-D to move left and right, W to rotate, S to speed up
 - Tested with Unity 2017.3
+- EXE file included
 
 ## Version 1.0 31/12/2017
 

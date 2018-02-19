@@ -29,7 +29,7 @@ public class BlockController : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
         HandleInput();
     }
