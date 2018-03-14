@@ -24,4 +24,8 @@
 
 ## Version 1.1
 
-- Fixed "dropping" issue
+- Fixed issue of objects occasionally going through the bottom
+
+## Version 1.2
+
+- Improved controls

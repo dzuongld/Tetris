@@ -29,9 +29,13 @@ public class BlockController : MonoBehaviour
     }
 
     // Update is called once per frame
-    void FixedUpdate()
+    void Update()
     {
         HandleInput();
+    }
+    void FixedUpdate()
+    {
+        HandleDropInput();
     }
 
     void HandleInput()
@@ -66,15 +70,10 @@ public class BlockController : MonoBehaviour
 
             transform.Rotate(Vector3.back, 90f);
         }
-        else if (Input.GetKey(KeyCode.S)) //speed up
-        {
-            CancelInvoke("Fall");
-            //InvokeRepeating("Fall", 0, 0.5f);
-            Fall();
-        }
+
         else if (Input.GetKeyUp(KeyCode.S))
         {
-            //CancelInvoke("Fall");
+            CancelInvoke("Fall");
             InvokeRepeating("Fall", 0, 1f);
         }
         else
@@ -83,6 +82,21 @@ public class BlockController : MonoBehaviour
         }
 
 
+    }
+
+    void HandleDropInput()
+    {
+        if (Input.GetKey(KeyCode.S)) //speed up
+        {
+            CancelInvoke("Fall");
+            //InvokeRepeating("Fall", 0, 0.5f);
+            Fall();
+        }
+        //else if (Input.GetKeyUp(KeyCode.S))
+        //{
+        //    //CancelInvoke("Fall");
+        //    InvokeRepeating("Fall", 0, 1f);
+        //}
     }
 
     void OnCollisionEnter(Collision collision)
