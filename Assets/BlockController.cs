@@ -45,7 +45,7 @@ public class BlockController : MonoBehaviour
             return;
         }
 
-        if (Input.GetKeyDown(KeyCode.A)) //move left
+        if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow)) //move left
         {
             if (state != State.HitLeft && OkToMove("left"))
             {
@@ -54,7 +54,7 @@ public class BlockController : MonoBehaviour
                     state = State.Free;
             }
         }
-        else if (Input.GetKeyDown(KeyCode.D)) //move right
+        else if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow)) //move right
         {
             if (state != State.HitRight && OkToMove("right"))
             {
@@ -63,7 +63,7 @@ public class BlockController : MonoBehaviour
                     state = State.Free;
             }
         }
-        else if (this.tag != "Square" && Input.GetKeyDown(KeyCode.W) && OkToMove("rotate")) //rotate clockwise, except the squared block
+        else if (this.tag != "Square" && (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow)) && OkToMove("rotate")) //rotate clockwise, except the squared block
         {
             if (!audioSource.isPlaying)
                 gameController.PlayRotateSound();
@@ -71,7 +71,7 @@ public class BlockController : MonoBehaviour
             transform.Rotate(Vector3.back, 90f);
         }
 
-        else if (Input.GetKeyUp(KeyCode.S))
+        else if (Input.GetKeyUp(KeyCode.S) || Input.GetKeyUp(KeyCode.DownArrow))
         {
             CancelInvoke("Fall");
             InvokeRepeating("Fall", 0, 1f);
@@ -86,7 +86,7 @@ public class BlockController : MonoBehaviour
 
     void HandleDropInput()
     {
-        if (Input.GetKey(KeyCode.S)) //speed up
+        if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow)) //speed up
         {
             CancelInvoke("Fall");
             //InvokeRepeating("Fall", 0, 0.5f);

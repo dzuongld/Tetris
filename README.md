@@ -3,9 +3,9 @@
 ## Description
 
 - A Tetris clone built using Unity and C#
-- Use A-D to move left and right, W to rotate, S to speed up
-- Tested with Unity 2017.3
-- EXE file included
+- Use A-D to move left and right, W to rotate, S to speed up, or alternatively use arrow keys
+- Tested with Unity 2018.2
+- Playable at https://simmer.io/@dzuongld/tetris
 
 ## Version 1.0 
 
@@ -29,3 +29,8 @@
 ## Version 1.2
 
 - Improved controls
+
+## Version 1.3
+
+- Added support for arrow controls
+- Created a web version
